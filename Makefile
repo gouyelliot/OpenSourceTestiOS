@@ -25,6 +25,12 @@ test-sonar: clean
 	bash $(SONAR_HOME)/xccov-to-sonarqube-generic.sh $(DERIVED_DATA)/Logs/Test/*.xcresult/ > $(DERIVED_DATA)/sonarqube-generic-coverage.xml
 
 	# Upload result to SonarCloud
-	java -Djava.awt.headless=true -classpath .sonar/sonar-scanner-cli-4.2.0.1873.jar -Dproject.home=$(CURDIR) -Dsonar.projectBaseDir=$(CURDIR) -Dsonar.host.url=$(SONAR_URL) org.sonarsource.scanner.cli.Main
+	java -Djava.awt.headless=true \
+		-Dproject.home=$(CURDIR) \
+		-Dsonar.projectBaseDir=$(CURDIR) \
+		-Dsonar.host.url=$(SONAR_URL) \
+		-Dsonar.login=$(SONAR_TOKEN) \
+		-classpath $(CURDIR)/.sonar/sonar-scanner-cli-4.2.0.1873.jar \
+		org.sonarsource.scanner.cli.Main
 
 ci: test-sonar
