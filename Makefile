@@ -3,8 +3,10 @@ all: app
 PROJECT=OpenSourceTestiOS.xcodeproj
 SIMULATOR='platform=iOS Simulator,name=iPhone 11'
 DERIVED_DATA=$(CURDIR)/DerivedData
+SONAR_HOME=$(CURDIR)/.sonar
 
 clean:
+	rm -rf $(DERIVED_DATA)
 	set -o pipefail && xcodebuild clean -project $(PROJECT) -scheme OpenSourceTestiOS | xcpretty
 
 app: clean
@@ -13,19 +15,9 @@ app: clean
 test: clean
 	set -o pipefail && xcodebuild test -project $(PROJECT) -scheme OpenSourceTestiOS -destination $(SIMULATOR) | xcpretty
 
-test-coverage: clean
-	set -o pipefail && xcodebuild test -project $(PROJECT) -scheme OpenSourceTestiOS -destination $(SIMULATOR) -enableCodeCoverage YES -derivedDataPath $(DERIVED_DATA) | xcpretty
+test-sonar: clean
+	mkdir -p $(DERIVED_DATA)
+	$(SONAR_HOME)/build-wrapper-macosx-x86 --out-dir $(DERIVED_DATA)/compilation-database xcodebuild test -project $(PROJECT) -scheme OpenSourceTestiOS -destination $(SIMULATOR) -enableCodeCoverage YES -derivedDataPath $(DERIVED_DATA)
+	bash $(SONAR_HOME)/xccov-to-sonarqube-generic.sh $(DERIVED_DATA)/Logs/Test/*.xcresult/ > $(DERIVED_DATA)/sonarqube-generic-coverage.xml
 
-multi_test: clean
-	set -o pipefail && \
-	xcodebuild test -project $(PROJECT) \
-	-scheme Batch \
-	-destination $(SIMULATOR) \
-	-destination 'platform=iOS Simulator,name=iPhone 6,OS=8.4' \
-	-destination 'platform=iOS Simulator,name=iPhone 6s,OS=9.3' \
-	-destination 'platform=iOS Simulator,name=iPhone 5,OS=8.4' \
-	-destination 'platform=iOS Simulator,name=iPhone 5,OS=9.3' \
-	-destination 'platform=iOS Simulator,name=iPhone 5,OS=10.3.1' \
-	| xcpretty
-
-ci: test
+ci: test-sonar
