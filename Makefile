@@ -16,8 +16,14 @@ test: clean
 	set -o pipefail && xcodebuild test -project $(PROJECT) -scheme OpenSourceTestiOS -destination $(SIMULATOR) | xcpretty
 
 test-sonar: clean
+	# Run tests and create Xcode coverage files
 	mkdir -p $(DERIVED_DATA)
 	$(SONAR_HOME)/build-wrapper-macosx-x86 --out-dir $(DERIVED_DATA)/compilation-database xcodebuild test -project $(PROJECT) -scheme OpenSourceTestiOS -destination $(SIMULATOR) -enableCodeCoverage YES -derivedDataPath $(DERIVED_DATA)
+
+	# Convert xresult into SonarCloud format
 	bash $(SONAR_HOME)/xccov-to-sonarqube-generic.sh $(DERIVED_DATA)/Logs/Test/*.xcresult/ > $(DERIVED_DATA)/sonarqube-generic-coverage.xml
+
+	# Upload result to SonarCloud
+	java -Djava.awt.headless=true -classpath .sonar/sonar-scanner-cli-4.2.0.1873.jar -Dproject.home=$(CURDIR) org.sonarsource.scanner.cli.Main
 
 ci: test-sonar
