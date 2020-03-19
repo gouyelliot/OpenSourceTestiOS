@@ -29,7 +29,6 @@ test-sonar: clean
 		-Dproject.home=$(CURDIR) \
 		-Dsonar.projectBaseDir=$(CURDIR) \
 		-Dsonar.host.url=$(SONAR_URL) \
-		-Dsonar.login=$(SONAR_TOKEN) \
 		-classpath $(CURDIR)/.sonar/sonar-scanner-cli-4.2.0.1873.jar \
 		org.sonarsource.scanner.cli.Main
 
